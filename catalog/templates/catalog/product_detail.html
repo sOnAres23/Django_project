@@ -28,6 +28,7 @@
                             <li>- Последнее обновление: {{ product.updated_at | date:"d M Y"}}</li>
                         </ul>
                         <button type="button" class="btn btn-lg btn-block btn-outline-primary">Купить</button>
+                        <a href="{% url 'catalog:product_update' product.pk %}" class="btn btn-secondary">Редактировать</a>
                         <a class="btn btn-lg btn-block btn-outline-primary" href="{% url 'catalog:show_home' %}">Назад</a>
                     </div>
                 </div>

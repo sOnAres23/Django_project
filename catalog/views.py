@@ -1,12 +1,34 @@
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpRequest, HttpResponse
 from django.conf import settings
-from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.urls import reverse_lazy, reverse
+from django.views.generic.edit import CreateView, UpdateView
 from django.views.generic import ListView, DetailView, TemplateView
 
 from catalog.models import Product
 
 base_dir = settings.BASE_DIR
+
+
+class ProductCreateView(CreateView):
+    """Класс предаставленный пользователю для создания нового продукта"""
+    model = Product
+    template_name = 'catalog/product_form.html'
+    context_object_name = "product_create"
+
+    fields = ('name', 'description', 'price', 'category', 'picture')
+    success_url = reverse_lazy('catalog:show_home')
+
+
+class ProductUpdateView(UpdateView):
+    model = Product
+    template_name = 'catalog/product_form.html'
+    context_object_name = "product_update"
+
+    fields = ('name', 'description', 'price', 'category', 'picture')
+
+    def get_success_url(self):
+        return reverse('catalog:product', args=[self.kwargs.get('pk')])
 
 
 class CatalogListView(ListView):
