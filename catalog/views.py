@@ -11,7 +11,7 @@ base_dir = settings.BASE_DIR
 
 
 class ProductCreateView(CreateView):
-    """Класс предаставленный пользователю для создания нового продукта"""
+    """Класс для создания нового продукта"""
     model = Product
     template_name = 'catalog/product_form.html'
     context_object_name = "product_create"
@@ -21,6 +21,7 @@ class ProductCreateView(CreateView):
 
 
 class ProductUpdateView(UpdateView):
+    """Класс для редактирования продукта"""
     model = Product
     template_name = 'catalog/product_form.html'
     context_object_name = "product_update"
@@ -39,7 +40,7 @@ class CatalogListView(ListView):
 
 
 class CatalogDetailView(DetailView):
-    """Класс для представления страницы полной информации о товаре"""
+    """Класс для представления полной информации о товаре"""
     model = Product
     template_name = "catalog/product_detail.html"
     context_object_name = "product"

@@ -1,0 +1,29 @@
+{% extends 'blogs/basic_design.html' %}
+{% load my_tags %}
+{% block title %}Мы пишем{% endblock %}
+
+{% block header %}
+{% include 'blogs/includes/header_menu.html' %}
+<div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+    <h1 class="my-0 mr-md-auto font-weight-normal">Новая статья</h1>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card-body">
+    <form method="post" action="" class="form-floating">
+        {% csrf_token %}
+        <div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-lg btn-block btn-outline-primary">
+                {% if object %}
+                Сохранить
+                {% else %}
+                Добавить
+                {% endif %}
+            </button>
+            <a class="btn btn-lg btn-block btn-outline-primary" href="{% url 'blogs:article_list' %}">Назад</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
