@@ -9,7 +9,7 @@ class ArticleCreateView(CreateView):
     """Класс для создания статьи"""
     model = Article
     template_name = "blogs/article_form.html"
-    context_object_name = "article_form"
+    context_object_name = "article_create"
 
     fields = ('header', 'content')
     success_url = reverse_lazy('blogs:article_list')
