@@ -7,7 +7,7 @@
 ## Установка:
 1. клонируйте репозиторий через ssh 
 ```
-git@github.com:sOnAres23/Django_project.git
+git@github.com:sOnAres23/First_django_project.git
 ```
 2. устанавливайте зависимости из: 
 ```

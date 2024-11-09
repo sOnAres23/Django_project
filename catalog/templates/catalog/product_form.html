@@ -1,0 +1,35 @@
+{% extends 'catalog/basic_design.html' %}
+{% load my_tags %}
+
+{% block title %}Формат продукта{% endblock %}
+
+{% block header %}
+{% include 'catalog/includes/header_menu.html' %}
+
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-6">
+            <h2 class="text-center pb-md-4">Формат продукта</h2>
+            <form method="post" enctype="multipart/form-data">
+                <div class="card">
+                    <div class="card-body">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        {% if object %}
+                        Сохранить
+                        {% else %}
+                        Создать
+                        {% endif %}
+                    </button>
+                    <a href="{% url 'catalog:show_home' %}" class="btn btn-secondary">Отмена</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
