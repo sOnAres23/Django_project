@@ -5,7 +5,17 @@ from django.forms import BooleanField
 from .models import Product
 
 
-class ProductForm(forms.ModelForm):
+class StyleFormMixin:
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for fild_name, fild in self.fields.items():
+            if isinstance(fild, BooleanField):
+                fild.widget.attrs['class'] = "form-check-input"
+            else:
+                fild.widget.attrs['class'] = "form-control"
+
+
+class ProductForm(StyleFormMixin, forms.ModelForm):
     class Meta:
         model = Product
         fields = "__all__"
@@ -13,11 +23,15 @@ class ProductForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(ProductForm, self).__init__(*args, **kwargs)
 
-        for field_name in self.fields.keys():  # получаем название полей
-            self.fields[field_name].widget.attrs.update({  # присваеваем значения полям на основании перебора
-                'class': 'form-control',
-                'placeholder': f"{field_name}",
-            })
+        # Настройка для отображения подсказки для поля 'name'
+        self.fields['name'].widget.attrs.update({
+            'placeholder': 'название'
+        })
+
+        # Настройка для отображения подсказки для поля 'description'
+        self.fields['description'].widget.attrs.update({
+            'placeholder': 'описание'
+        })
 
     def clean(self):
         """Валидация полей имени и описания на отсутствие запрещенных слов"""
@@ -26,7 +40,7 @@ class ProductForm(forms.ModelForm):
         cleaned_data = super().clean()
         name = cleaned_data.get('name')
         description = cleaned_data.get('description')
-        if name or description in list_wrong_words:
+        if name and description in list_wrong_words:
             raise ValidationError('К сожалению, ваш продукт не может содержать такие слова:(')
 
     def clean_price(self):
@@ -35,12 +49,3 @@ class ProductForm(forms.ModelForm):
         if price < 0:
             raise ValidationError('Цена не может быть отрицательной!')
         return price
-
-# class StyleFormMixin:
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         for fild_name, fild in self.fields.items():
-#             if isinstance(fild, BooleanField):
-#                 fild.widget.attrs['class'] = "form-check-input"
-#             else:
-#                 fild.widget.attrs['class'] = "form-control"

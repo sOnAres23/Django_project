@@ -1,3 +1,6 @@
+import os
+
+from django.core.mail import send_mail
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpRequest, HttpResponse
 from django.conf import settings
@@ -7,8 +10,6 @@ from django.views.generic import ListView, DetailView, TemplateView
 
 from catalog.forms import ProductForm
 from catalog.models import Product
-
-base_dir = settings.BASE_DIR
 
 
 class ProductCreateView(CreateView):
@@ -80,11 +81,13 @@ class CatalogTemplateView(TemplateView):
             name = request.POST.get('name')
             phone = request.POST.get('phone')
             message = request.POST.get('message')
-            # Обработка данных (например, сохранение в БД, отправка email и т. д.)
+            # Обработка данных (для примера, отправка email и запись в файл)
+            send_mail(f'Письмо от пользователя: {name}', f'Сообщение: {message}, Телефон для связи: {phone}',
+                      settings.EMAIL_HOST_USER, ['nastyushka.bakirova@mail.ru'])
             write_in_file = (f"\nИмя пользователя: {name}\n"
                              f"Телефон пользователя: {phone}\n"
                              f"Его сообщение: {message}\n")
-            with open(r"C:\Users\Amd\Desktop\SkyPro\Messages.txt", "a", encoding="utf-8") as file:
+            with open(f"{os.getenv('PATH_FILE')}", "a", encoding="utf-8") as file:
                 file.write(write_in_file)
             # А здесь мы просто возвращаем простой ответ пользователю на сайте:
             return HttpResponse(f"Спасибо, {name}! Ваше сообщение получено.")
