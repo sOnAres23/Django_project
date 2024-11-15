@@ -25,23 +25,26 @@ class ProductForm(StyleFormMixin, forms.ModelForm):
 
         # Настройка для отображения подсказки для поля 'name'
         self.fields['name'].widget.attrs.update({
-            'placeholder': 'название'
+            'placeholder': 'название '
         })
 
         # Настройка для отображения подсказки для поля 'description'
         self.fields['description'].widget.attrs.update({
-            'placeholder': 'описание'
+            'placeholder': 'описание без спам слов'
         })
 
     def clean(self):
         """Валидация полей имени и описания на отсутствие запрещенных слов"""
-        list_wrong_words = ["казино", "криптовалюта", "крипта", "биржа",
-                            "дешево", "бесплатно", "обман", "полиция", "радар"]
+        list_wrong_words = ["казино", "бомба", "ставки", "дешево",
+                            "бесплатно", "обман", "полиция", "радар"]
         cleaned_data = super().clean()
         name = cleaned_data.get('name')
         description = cleaned_data.get('description')
-        if name and description in list_wrong_words:
-            raise ValidationError('К сожалению, ваш продукт не может содержать такие слова:(')
+        for word in list_wrong_words:
+            if word in name.lower():
+                self.add_error('name', f'К сожалению, ваш продукт не может содержать слово: "{word}" :(')
+            if word in description.lower():
+                self.add_error('description', f'К сожалению, ваш продукт не может содержать слово: "{word}" :(')
 
     def clean_price(self):
         """Валидация поля цены, что цена продукта не может быть отрицательной"""
