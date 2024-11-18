@@ -1,5 +1,6 @@
 import os
 
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.mail import send_mail
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpRequest, HttpResponse
@@ -12,7 +13,7 @@ from catalog.forms import ProductForm
 from catalog.models import Product
 
 
-class ProductCreateView(CreateView):
+class ProductCreateView(LoginRequiredMixin, CreateView):
     """Класс для создания нового продукта"""
     model = Product
     template_name = 'catalog/product_form.html'
@@ -26,12 +27,11 @@ class ProductCreateView(CreateView):
         return context
 
     def form_valid(self, form):
-        form.instance.author = self.request.user
-        form.save()
+        form.instance.user = self.request.user
         return super().form_valid(form)
 
 
-class ProductUpdateView(UpdateView):
+class ProductUpdateView(LoginRequiredMixin, UpdateView):
     """Класс для редактирования продукта"""
     model = Product
     template_name = 'catalog/product_form.html'
@@ -47,7 +47,7 @@ class ProductUpdateView(UpdateView):
         return context
 
     def form_valid(self, form):
-        form.save()
+        form.instance.user = self.request.user
         return super().form_valid(form)
 
 
@@ -65,10 +65,14 @@ class CatalogDetailView(DetailView):
     context_object_name = "product"
 
 
-class ProductDeleteView(DeleteView):
+class ProductDeleteView(LoginRequiredMixin, DeleteView):
     model = Product
     template_name = 'catalog/product_confirm_delete.html'
     success_url = reverse_lazy('catalog:show_home')
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
 
 
 class CatalogTemplateView(TemplateView):
