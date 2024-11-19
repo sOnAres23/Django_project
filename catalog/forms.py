@@ -15,10 +15,18 @@ class StyleFormMixin:
                 fild.widget.attrs['class'] = "form-control"
 
 
+class ProductModeratorForm(StyleFormMixin, forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = '__all__'
+        exclude = ['created_at', 'updated_at', "owner"]
+
+
 class ProductForm(StyleFormMixin, forms.ModelForm):
     class Meta:
         model = Product
         fields = "__all__"
+        exclude = ['is_published', 'owner']
 
     def __init__(self, *args, **kwargs):
         super(ProductForm, self).__init__(*args, **kwargs)
@@ -52,3 +60,17 @@ class ProductForm(StyleFormMixin, forms.ModelForm):
         if price < 0:
             raise ValidationError('Цена не может быть отрицательной!')
         return price
+
+    def clean_photo(self):
+        """Валидация поля фотографии, чтобы фото продукта было правильного разрешения и размера"""
+        image = self.cleaned_data.get('photo')
+
+        # Проверка формата файла
+        if image:
+            if not (image.name.endswith('.jpg') or image.name.endswith('.jpeg') or image.name.endswith('.png')):
+                raise ValidationError("Формат файла должен быть JPEG или PNG.")
+
+            # Проверка размера файла
+            if image.size > 10 * 1024 * 1024:
+                raise ValidationError("Размер файла не должен превышать 10 МБ.")
+        return image

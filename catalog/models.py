@@ -1,5 +1,7 @@
 from django.db import models
 
+from users.models import CustomUser
+
 
 class Category(models.Model):
     """Модель создания таблицы Категории в БД"""
@@ -23,6 +25,9 @@ class Product(models.Model):
     picture = models.ImageField(upload_to='catalog/photos/', verbose_name='Изображение', null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products', verbose_name='Категория', help_text='Выберите предложенную категорию')
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Цена', help_text='Введите цену')
+    is_published = models.BooleanField(default=False, verbose_name="Опубликовано")
+    owner = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, blank=True, null=True,
+                              verbose_name='Владелец', help_text='Укажите владельца')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -33,3 +38,6 @@ class Product(models.Model):
         verbose_name = 'Продукт'
         verbose_name_plural = 'Продукты'
         ordering = ['name', 'price', 'created_at']
+        permissions = [
+            ('can_unpublish_product', 'Can unpublish product'),
+        ]
