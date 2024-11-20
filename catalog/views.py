@@ -1,10 +1,9 @@
 import os
-
+# get_object_or_404, redirect,
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.core.exceptions import PermissionDenied
 from django.core.mail import send_mail
-from django.shortcuts import render, get_object_or_404, redirect
-from django.http import HttpRequest, HttpResponse, HttpResponseForbidden
+from django.shortcuts import render
+from django.http import HttpResponse, HttpResponseForbidden
 from django.conf import settings
 from django.urls import reverse_lazy, reverse
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
@@ -46,6 +45,14 @@ class ProductUpdateView(LoginRequiredMixin, UpdateView):
     def get_success_url(self):
         return reverse('catalog:product', args=[self.kwargs.get('pk')])
 
+    def dispatch(self, request, *args, **kwargs):
+        product = self.get_object()
+        user = self.request.user
+        if user != product.owner:
+            if not user.has_perm('catalog.change_product'):
+                return HttpResponseForbidden("У вас нет прав для редактирования этого продукта!")
+        return super().dispatch(request, *args, **kwargs)
+
     def get_form_class(self):
         user = self.request.user
         if user.has_perm('catalog.can_unpublish_product'):
@@ -77,6 +84,14 @@ class ProductDeleteView(LoginRequiredMixin, DeleteView):
     model = Product
     template_name = 'catalog/product_confirm_delete.html'
     success_url = reverse_lazy('catalog:show_home')
+
+    def dispatch(self, request, *args, **kwargs):
+        product = self.get_object()
+        user = self.request.user
+        if user != product.owner:
+            if not user.has_perm('catalog.delete_product'):
+                return HttpResponseForbidden("У вас нет прав для удаления этого продукта!")
+        return super().dispatch(request, *args, **kwargs)
 
 
 class CatalogTemplateView(TemplateView):

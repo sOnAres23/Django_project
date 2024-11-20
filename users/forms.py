@@ -10,7 +10,8 @@ class CustomUserCreationForm(UserCreationForm):
 
     class Meta(UserCreationForm.Meta):
         model = CustomUser
-        fields = ('email', 'username', 'first_name', 'last_name', 'phone_number', 'country', 'password1', 'password2', 'avatar')
+        fields = ('email', 'username', 'first_name', 'last_name', 'phone_number',
+                  'country', 'password1', 'password2', 'avatar')
         labels = {
             'first_name': 'Имя',
             'last_name': 'Фамилия',
