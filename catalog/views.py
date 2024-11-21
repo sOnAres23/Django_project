@@ -1,15 +1,15 @@
 import os
-
-from django.contrib.auth.mixins import LoginRequiredMixin
+# get_object_or_404, redirect,
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.mail import send_mail
-from django.shortcuts import render, get_object_or_404
-from django.http import HttpRequest, HttpResponse
+from django.shortcuts import render
+from django.http import HttpResponse, HttpResponseForbidden
 from django.conf import settings
 from django.urls import reverse_lazy, reverse
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic import ListView, DetailView, TemplateView
 
-from catalog.forms import ProductForm
+from catalog.forms import ProductForm, ProductModeratorForm
 from catalog.models import Product
 
 
@@ -27,7 +27,11 @@ class ProductCreateView(LoginRequiredMixin, CreateView):
         return context
 
     def form_valid(self, form):
-        form.instance.user = self.request.user
+        product = form.save()
+        user = self.request.user
+        product.owner = user
+        product.save()
+
         return super().form_valid(form)
 
 
@@ -41,10 +45,20 @@ class ProductUpdateView(LoginRequiredMixin, UpdateView):
     def get_success_url(self):
         return reverse('catalog:product', args=[self.kwargs.get('pk')])
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'Обновление продукта'
-        return context
+    def dispatch(self, request, *args, **kwargs):
+        product = self.get_object()
+        user = self.request.user
+        if user != product.owner:
+            if not user.has_perm('catalog.change_product'):
+                return HttpResponseForbidden("У вас нет прав для редактирования этого продукта!")
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_form_class(self):
+        user = self.request.user
+        if user.has_perm('catalog.can_unpublish_product'):
+            return ProductModeratorForm
+
+        return ProductForm
 
     def form_valid(self, form):
         form.instance.user = self.request.user
@@ -66,13 +80,18 @@ class CatalogDetailView(DetailView):
 
 
 class ProductDeleteView(LoginRequiredMixin, DeleteView):
+    """Класс для удаления продукта"""
     model = Product
     template_name = 'catalog/product_confirm_delete.html'
     success_url = reverse_lazy('catalog:show_home')
 
-    def form_valid(self, form):
-        form.instance.user = self.request.user
-        return super().form_valid(form)
+    def dispatch(self, request, *args, **kwargs):
+        product = self.get_object()
+        user = self.request.user
+        if user != product.owner:
+            if not user.has_perm('catalog.delete_product'):
+                return HttpResponseForbidden("У вас нет прав для удаления этого продукта!")
+        return super().dispatch(request, *args, **kwargs)
 
 
 class CatalogTemplateView(TemplateView):
@@ -87,7 +106,7 @@ class CatalogTemplateView(TemplateView):
             message = request.POST.get('message')
             # Обработка данных (для примера, отправка email и запись в файл)
             send_mail(f'Письмо от пользователя: {name}', f'Сообщение: {message}, Телефон для связи: {phone}',
-                      settings.EMAIL_HOST_USER, ['nastyushka.bakirova@mail.ru'])
+                      settings.EMAIL_HOST_USER, ['sergeyspisak@yandex.ru'])
             write_in_file = (f"\nИмя пользователя: {name}\n"
                              f"Телефон пользователя: {phone}\n"
                              f"Его сообщение: {message}\n")
@@ -96,41 +115,3 @@ class CatalogTemplateView(TemplateView):
             # А здесь мы просто возвращаем простой ответ пользователю на сайте:
             return HttpResponse(f"Спасибо, {name}! Ваше сообщение получено.")
         return render(request, 'catalog/contacts.html')
-
-# def show_home(request: HttpRequest):
-#     """Обрабатывает запрос и возвращает html-страницу"""
-#     if request.method == 'GET':
-#         products = Product.objects.all()
-#         context = {'products': products}
-#
-#         return render(request, "catalog/home.html", context=context)
-#
-#
-# def show_contacts(request: HttpRequest):
-#     """Обрабатывает запрос и возвращает html-страницу"""
-#     if request.method == 'GET':
-#         return render(request, "catalog/contacts.html")
-#
-#
-# def contacts(request: HttpRequest):
-#     """Обрабатываем форму и возвращаем ответ"""
-#     if request.method == 'POST':
-#         # Получение данных из формы
-#         name = request.POST.get('name')
-#         phone = request.POST.get('phone')
-#         message = request.POST.get('message')
-#         # Обработка данных (например, сохранение в БД, отправка email и т. д.)
-#         write_in_file = (f"\nИмя пользователя: {name}\n"
-#                          f"Телефон пользователя: {phone}\n"
-#                          f"Его сообщение: {message}\n")
-#         with open(r"C:\Users\Amd\Desktop\SkyPro\Messages.txt", "a", encoding="utf-8") as file:
-#             file.write(write_in_file)
-#         # А здесь мы просто возвращаем простой ответ пользователю на сайте:
-#         return HttpResponse(f"Спасибо, {name}! Ваше сообщение получено.")
-#     return render(request, 'catalog/contacts.html')
-#
-#
-# def product_detail(request: HttpRequest, pk: int):
-#     product = get_object_or_404(Product, pk=pk)
-#     context = {'product': product}
-#     return render(request, 'catalog/product_detail.html', context=context)

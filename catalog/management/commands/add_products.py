@@ -14,7 +14,7 @@ class Command(BaseCommand):
 
         # А также наполняем продукты категории
         products = [
-            {'name': 'Какое-то имя продукта', 'description': 'Какое-то описание его', 'category': category, 'price': 23},
+            {'name': 'Какое-то имя продукта', 'description': 'Какое-то описание', 'category': category, 'price': 23},
             {'name': 'Также какое-то имя', 'description': 'Его какое-то описание', 'category': category, 'price': 44},
         ]
 

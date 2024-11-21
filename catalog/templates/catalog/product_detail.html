@@ -25,10 +25,17 @@
                 <li>- {{ product.description|truncatechars:250 }}</li>
                 <li>- Дата создания: {{ product.created_at | date:"d M Y"}}</li>
                 <li>- Последнее обновление: {{ product.updated_at | date:"d M Y"}}</li>
+                <li>- Владелец продукта: {{ product.owner }}</li>
             </ul>
+            {% if user.is_authenticated%}
             <button type="button" class="btn btn-lg btn-block btn-outline-primary">Купить</button>
-            <a href="{% url 'catalog:product_update' product.pk %}" class="btn btn-lg btn-block btn-outline-info">Редактировать</a>
-            <a class="btn btn-lg btn-danger ml-1" href="{% url 'catalog:product_delete' product.pk %}">Удалить</a>
+                {% if perms.catalog.change_product or user == product.owner %}
+                    <a class="btn btn-lg btn-block btn-outline-info" href="{% url 'catalog:product_update' product.pk %}" >Редактировать</a>
+                {% endif %}
+                {% if perms.catalog.delete_product or user == product.owner  %}
+                    <a class="btn btn-lg btn-danger ml-1" href="{% url 'catalog:product_delete' product.pk %}">Удалить</a>
+                {% endif %}
+            {% endif %}
             <a class="btn btn-lg btn-block btn-outline-primary" href="{% url 'catalog:show_home' %}">Назад</a>
         </div>
     </div>
