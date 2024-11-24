@@ -11,7 +11,7 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic import ListView, DetailView, TemplateView
 
 from catalog.forms import ProductForm, ProductModeratorForm
-from catalog.models import Product
+from catalog.models import Product, Category
 from catalog.services import CatalogService
 
 
@@ -109,11 +109,9 @@ class ProductsByCategoryView(ListView):
         return CatalogService.get_products_by_category(category_id=category_id)
 
     def get_context_data(self, **kwargs):
-        """
-        Добавляет информацию о категории в контекст.
-        """
+        """Функция, которая добавляет информацию о категории в контекст"""
         context = super().get_context_data(**kwargs)
-        context["category"] = self.kwargs.get('category_name')
+        context["category"] = Category.objects.filter(id=self.kwargs.get('category_id')).first()
         context["products"] = self.get_queryset()
         return context
 
