@@ -1,7 +1,7 @@
 {% extends 'catalog/basic_design.html' %}
 {% load my_tags %}
 
-{% block title %}{{ product.name }}{% endblock %}
+{% block title %}Продукты в категории {{ category }}{% endblock %}
 
 {% block header %}
 {% include 'catalog/includes/header_menu.html' %}
@@ -12,7 +12,10 @@
 {% endblock %}
 
 {% block content %}
-<div class="row text-center">
+<h1>Продукты в категории {{ category }}:</h1>
+{% if products %}
+    <div class="row text-center">
+        {% for product in products %}
     <div class="card mb-4 box-shadow">
         {% if user.is_authenticated%}
         <div class="card-header">
@@ -43,5 +46,10 @@
             {% endif %}
         </div>
     </div>
-</div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>В данной категории пока нет продуктов.</p>
+{% endif %}
+    <a href="{% url 'catalog:show_home' %}" class="btn btn-secondary">Назад</a>
 {% endblock %}
