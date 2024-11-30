@@ -18,8 +18,8 @@ class RegisterView(CreateView):
         return super().form_valid(form)
 
     def send_welcome_email(self, user_email):
-        subject = 'Добро пожаловать в мой сервис^_^'
+        mail_theme = 'Добро пожаловать в мой сервис^_^'
         message = 'Спасибо, что зарегистрировались на нашем сайте!'
         from_email = settings.EMAIL_HOST_USER
         recipient_list = [user_email]
-        send_mail(subject, message, from_email, recipient_list)
+        send_mail(mail_theme, message, from_email, recipient_list)

@@ -1,11 +1,11 @@
 <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-3 mb-2 bg-white border-bottom box-shadow display-inline">
     <h4 class="mr-md-auto font-weight-normal">Skystore</h4>
-    <ul>
+    <nav class="ms-5">
         <a class="p-2 btn btn-outline-primary" href="{% url 'catalog:show_home' %}">Каталог</a>
         <a class="p-2 btn btn-outline-primary" href="{% url 'catalog:contacts' %}">Контакты</a>
-        <a class="p-2 btn btn-outline-primary" href="{% url 'blogs:article_list' %}">Мы пишем</a>
         <a class="p-2 btn btn-outline-primary" href="{% url 'catalog:product_create' %}">Создать свой продукт</a>
-        {% if user.is_authenticated %}
+        <div class="position-absolute top-0 end-0 p-3 px-md-4 mb-3">
+            {% if user.is_authenticated %}
             <li class="p-2 btn btn-outline-primary">
 	            <form method="post" action="{% url 'users:logout' %}" style="display: inline;">
 	                {% csrf_token %}
@@ -20,5 +20,6 @@
                     <a class="nav-link" href="{% url 'users:register' %}">Регистрация</a>
                 </li>
         {% endif %}
-    </ul>
+        </div>
+    </nav>
 </div>

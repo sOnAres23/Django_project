@@ -1,7 +1,7 @@
 import os
-# get_object_or_404, redirect,
+# get_object_or_404, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.core.cache import cache
+# from django.core.cache import cache
 from django.core.mail import send_mail
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseForbidden
@@ -22,11 +22,6 @@ class ProductCreateView(LoginRequiredMixin, CreateView):
     context_object_name = "product_create"
     form_class = ProductForm
     success_url = reverse_lazy('catalog:show_home')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'Добавление продукта на сайт'
-        return context
 
     def form_valid(self, form):
         product = form.save()
