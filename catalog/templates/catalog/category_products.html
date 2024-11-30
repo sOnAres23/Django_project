@@ -1,7 +1,7 @@
 {% extends 'catalog/basic_design.html' %}
 {% load my_tags %}
 
-{% block title %}{{ product.name }}{% endblock %}
+{% block title %}{{ category.name }}{% endblock %}
 
 {% block header %}
 {% include 'catalog/includes/header_menu.html' %}
@@ -12,7 +12,10 @@
 {% endblock %}
 
 {% block content %}
-<div class="row text-center">
+<h1>Продукты в категории "{{ category.name }}":</h1>
+{% if products %}
+    <div class="row text-center">
+        {% for product in products %}
     <div class="card mb-4 box-shadow">
         {% if user.is_authenticated%}
         <div class="card-header">
@@ -30,7 +33,7 @@
             </ul>
             <button type="button" class="btn btn-lg btn-block btn-outline-primary">Купить</button>
                 {% if perms.catalog.change_product or user == product.owner %}
-                    <a class="btn btn-lg btn-block btn-outline-info" href="{% url 'catalog:product_update' product.pk %}" >Редактировать</a>
+                    <a class="btn btn-lg btn-block btn-outline-info" href="{% url 'catalog:product_update' product.pk %}">Редактировать</a>
                 {% endif %}
                 {% if perms.catalog.delete_product or user == product.owner  %}
                     <a class="btn btn-lg btn-danger ml-1" href="{% url 'catalog:product_delete' product.pk %}">Удалить</a>
@@ -43,5 +46,10 @@
             {% endif %}
         </div>
     </div>
-</div>
+        {% endfor %}
+    </div>
+{% else %}
+    <h5>В данной категории пока нет продуктов.</h5>
+    <a href="{% url 'catalog:show_home' %}" class="btn btn-secondary">Назад</a>
+{% endif %}
 {% endblock %}

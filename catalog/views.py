@@ -1,35 +1,65 @@
-from django.shortcuts import render, get_object_or_404
-from django.http import HttpRequest, HttpResponse
+import os
+# get_object_or_404, redirect
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+# from django.core.cache import cache
+from django.core.mail import send_mail
+from django.shortcuts import render
+from django.http import HttpResponse, HttpResponseForbidden
 from django.conf import settings
 from django.urls import reverse_lazy, reverse
-from django.views.generic.edit import CreateView, UpdateView
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic import ListView, DetailView, TemplateView
 
-from catalog.models import Product
+from catalog.forms import ProductForm, ProductModeratorForm
+from catalog.models import Product, Category
+from catalog.services import CatalogService
 
-base_dir = settings.BASE_DIR
 
-
-class ProductCreateView(CreateView):
+class ProductCreateView(LoginRequiredMixin, CreateView):
     """Класс для создания нового продукта"""
     model = Product
     template_name = 'catalog/product_form.html'
     context_object_name = "product_create"
-
-    fields = ('name', 'description', 'price', 'category', 'picture')
+    form_class = ProductForm
     success_url = reverse_lazy('catalog:show_home')
 
+    def form_valid(self, form):
+        product = form.save()
+        user = self.request.user
+        product.owner = user
+        product.save()
 
-class ProductUpdateView(UpdateView):
+        return super().form_valid(form)
+
+
+class ProductUpdateView(LoginRequiredMixin, UpdateView):
     """Класс для редактирования продукта"""
     model = Product
     template_name = 'catalog/product_form.html'
     context_object_name = "product_update"
-
-    fields = ('name', 'description', 'price', 'category', 'picture')
+    form_class = ProductForm
 
     def get_success_url(self):
         return reverse('catalog:product', args=[self.kwargs.get('pk')])
+
+    def dispatch(self, request, *args, **kwargs):
+        product = self.get_object()
+        user = self.request.user
+        if user != product.owner:
+            if not user.has_perm('catalog.change_product'):
+                return HttpResponseForbidden("У вас нет прав для редактирования этого продукта!")
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_form_class(self):
+        user = self.request.user
+        if user.has_perm('catalog.can_unpublish_product'):
+            return ProductModeratorForm
+
+        return ProductForm
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
 
 
 class CatalogListView(ListView):
@@ -38,12 +68,47 @@ class CatalogListView(ListView):
     template_name = "catalog/home.html"
     context_object_name = "products"
 
+    def get_queryset(self):
+        return CatalogService.get_products_from_cache()
+
 
 class CatalogDetailView(DetailView):
     """Класс для представления полной информации о товаре"""
     model = Product
     template_name = "catalog/product_detail.html"
     context_object_name = "product"
+
+
+class ProductDeleteView(LoginRequiredMixin, DeleteView):
+    """Класс для удаления продукта"""
+    model = Product
+    template_name = 'catalog/product_confirm_delete.html'
+    success_url = reverse_lazy('catalog:show_home')
+
+    def dispatch(self, request, *args, **kwargs):
+        product = self.get_object()
+        user = self.request.user
+        if user != product.owner:
+            if not user.has_perm('catalog.delete_product'):
+                return HttpResponseForbidden("У вас нет прав для удаления этого продукта!")
+        return super().dispatch(request, *args, **kwargs)
+
+
+class ProductsByCategoryView(ListView):
+    template_name = 'catalog/category_products.html'
+    context_object_name = "products"
+
+    def get_queryset(self):
+        # Получаем category_id из URL
+        category_id = self.kwargs.get('category_id')
+        return CatalogService.get_products_by_category(category_id=category_id)
+
+    def get_context_data(self, **kwargs):
+        """Функция, которая добавляет информацию о категории в контекст"""
+        context = super().get_context_data(**kwargs)
+        context["category"] = Category.objects.filter(id=self.kwargs.get('category_id')).first()
+        context["products"] = self.get_queryset()
+        return context
 
 
 class CatalogTemplateView(TemplateView):
@@ -56,50 +121,14 @@ class CatalogTemplateView(TemplateView):
             name = request.POST.get('name')
             phone = request.POST.get('phone')
             message = request.POST.get('message')
-            # Обработка данных (например, сохранение в БД, отправка email и т. д.)
+            # Обработка данных (для примера, отправка email и запись в файл)
+            send_mail(f'Письмо от пользователя: {name}', f'Сообщение: {message}, Телефон для связи: {phone}',
+                      settings.EMAIL_HOST_USER, ['sergeyspisak@yandex.ru'])
             write_in_file = (f"\nИмя пользователя: {name}\n"
                              f"Телефон пользователя: {phone}\n"
                              f"Его сообщение: {message}\n")
-            with open(r"C:\Users\Amd\Desktop\SkyPro\Messages.txt", "a", encoding="utf-8") as file:
+            with open(f"{os.getenv('PATH_FILE')}", "a", encoding="utf-8") as file:
                 file.write(write_in_file)
             # А здесь мы просто возвращаем простой ответ пользователю на сайте:
             return HttpResponse(f"Спасибо, {name}! Ваше сообщение получено.")
         return render(request, 'catalog/contacts.html')
-
-# def show_home(request: HttpRequest):
-#     """Обрабатывает запрос и возвращает html-страницу"""
-#     if request.method == 'GET':
-#         products = Product.objects.all()
-#         context = {'products': products}
-#
-#         return render(request, "catalog/home.html", context=context)
-#
-#
-# def show_contacts(request: HttpRequest):
-#     """Обрабатывает запрос и возвращает html-страницу"""
-#     if request.method == 'GET':
-#         return render(request, "catalog/contacts.html")
-#
-#
-# def contacts(request: HttpRequest):
-#     """Обрабатываем форму и возвращаем ответ"""
-#     if request.method == 'POST':
-#         # Получение данных из формы
-#         name = request.POST.get('name')
-#         phone = request.POST.get('phone')
-#         message = request.POST.get('message')
-#         # Обработка данных (например, сохранение в БД, отправка email и т. д.)
-#         write_in_file = (f"\nИмя пользователя: {name}\n"
-#                          f"Телефон пользователя: {phone}\n"
-#                          f"Его сообщение: {message}\n")
-#         with open(r"C:\Users\Amd\Desktop\SkyPro\Messages.txt", "a", encoding="utf-8") as file:
-#             file.write(write_in_file)
-#         # А здесь мы просто возвращаем простой ответ пользователю на сайте:
-#         return HttpResponse(f"Спасибо, {name}! Ваше сообщение получено.")
-#     return render(request, 'catalog/contacts.html')
-#
-#
-# def product_detail(request: HttpRequest, pk: int):
-#     product = get_object_or_404(Product, pk=pk)
-#     context = {'product': product}
-#     return render(request, 'catalog/product_detail.html', context=context)

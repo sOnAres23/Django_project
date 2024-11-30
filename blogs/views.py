@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.urls import reverse_lazy, reverse
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic import ListView, DetailView
@@ -9,7 +10,7 @@ class ArticleCreateView(CreateView):
     """Класс для создания статьи"""
     model = Article
     template_name = "blogs/article_form.html"
-    context_object_name = "article_form"
+    context_object_name = "article_create"
 
     fields = ('header', 'content')
     success_url = reverse_lazy('blogs:article_list')
@@ -25,23 +26,24 @@ class ArticleListView(ListView):
         return Article.objects.filter(is_active=True)
 
 
-class ArticleUpdateView(UpdateView):
+class ArticleUpdateView(PermissionRequiredMixin, UpdateView):
     """Класс для редактирования статьи"""
     model = Article
     template_name = "blogs/article_form.html"
     context_object_name = "article_create"
-
+    permission_required = 'blogs.change_article_detail'
     fields = ('header', 'content')
 
     def get_success_url(self):
         return reverse('blogs:article_detail', args=[self.kwargs.get('pk')])
 
 
-class ArticleDeleteView(DeleteView):
+class ArticleDeleteView(PermissionRequiredMixin, DeleteView):
     """Класс для удаления статьи"""
     model = Article
     template_name = "blogs/article_confirm_delete.html.html"
     context_object_name = "article_delete"
+    permission_required = 'blogs.delete_article_detail'
 
     success_url = reverse_lazy("blogs:article_list")
 

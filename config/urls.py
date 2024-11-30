@@ -22,7 +22,8 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('catalog/', include('catalog.urls', namespace='catalog')),  # Достаем маршруты страниц из приложения catalog
-    path('blogs/', include('blogs.urls', namespace='blogs'))  # Достаем маршруты страниц из приложения blogs
+    path('blogs/', include('blogs.urls', namespace='blogs')),  # Достаем маршруты страниц из приложения blogs
+    path('users/', include('users.urls', namespace="users")),  # Достаем маршруты страниц из приложения users
 ]
 
 if settings.DEBUG:

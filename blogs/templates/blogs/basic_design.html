@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -25,11 +25,10 @@
             <div class="col-6 col-md">
                 <h5>Категории</h5>
                 <ul class="list-unstyled text-small">
-                    <li><a class="text-muted" href="#">Рассылки</a></li>
-                    <li><a class="text-muted" href="#">Телеграм боты</a></li>
-                    <li><a class="text-muted" href="#">Полезные утилиты</a></li>
-                    <li><a class="text-muted" href="#">Веб-приложения</a></li>
-                    <li><a class="text-muted" href="#">Микросервисы</a></li>
+                    <li><a class="text-muted" href="{% url 'catalog:products_by_category' category_id=1 %}">Телеграм боты</a></li>
+                    <li><a class="text-muted" href="{% url 'catalog:products_by_category' category_id=2 %}">Плагины</a></li>
+                    <li><a class="text-muted" href="{% url 'catalog:products_by_category' category_id=3 %}">Продукты</a></li>
+                    <li><a class="text-muted" href="{% url 'catalog:products_by_category' category_id=4 %}">Товары</a></li>
                 </ul>
             </div>
             <div class="col-6 col-md">
