@@ -14,7 +14,7 @@
 <div class="row text-center">
     <div class="card mb-4 box-shadow">
         <div class="card-header">
-            <img src="{{article_detail | media_filter}}" width="200" height="200">
+            <img src="{{article_detail.picture | media_filter}}" width="200" height="200">
             <h4 class="my-0 font-weight-normal">Дата создания: {{ article_detail.created_at | date:"d.m.Y" }}</h4>
         </div>
         <div class="card-body">

@@ -1,6 +1,7 @@
 import os
-# get_object_or_404, redirect,
+# get_object_or_404, redirect
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+# from django.core.cache import cache
 from django.core.mail import send_mail
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseForbidden
@@ -10,7 +11,8 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic import ListView, DetailView, TemplateView
 
 from catalog.forms import ProductForm, ProductModeratorForm
-from catalog.models import Product
+from catalog.models import Product, Category
+from catalog.services import CatalogService
 
 
 class ProductCreateView(LoginRequiredMixin, CreateView):
@@ -20,11 +22,6 @@ class ProductCreateView(LoginRequiredMixin, CreateView):
     context_object_name = "product_create"
     form_class = ProductForm
     success_url = reverse_lazy('catalog:show_home')
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['title'] = 'Добавление продукта на сайт'
-        return context
 
     def form_valid(self, form):
         product = form.save()
@@ -71,6 +68,9 @@ class CatalogListView(ListView):
     template_name = "catalog/home.html"
     context_object_name = "products"
 
+    def get_queryset(self):
+        return CatalogService.get_products_from_cache()
+
 
 class CatalogDetailView(DetailView):
     """Класс для представления полной информации о товаре"""
@@ -92,6 +92,23 @@ class ProductDeleteView(LoginRequiredMixin, DeleteView):
             if not user.has_perm('catalog.delete_product'):
                 return HttpResponseForbidden("У вас нет прав для удаления этого продукта!")
         return super().dispatch(request, *args, **kwargs)
+
+
+class ProductsByCategoryView(ListView):
+    template_name = 'catalog/category_products.html'
+    context_object_name = "products"
+
+    def get_queryset(self):
+        # Получаем category_id из URL
+        category_id = self.kwargs.get('category_id')
+        return CatalogService.get_products_by_category(category_id=category_id)
+
+    def get_context_data(self, **kwargs):
+        """Функция, которая добавляет информацию о категории в контекст"""
+        context = super().get_context_data(**kwargs)
+        context["category"] = Category.objects.filter(id=self.kwargs.get('category_id')).first()
+        context["products"] = self.get_queryset()
+        return context
 
 
 class CatalogTemplateView(TemplateView):
